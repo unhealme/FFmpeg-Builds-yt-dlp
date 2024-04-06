@@ -147,9 +147,11 @@ jobs:
         include:
           - target: win64
             variant: nonfree 7.0
+            addin: ""
             quickbuild: 1
           - target: linux64
-            variant: nonfree 7.0 lto
+            variant: nonfree 7.0
+            addin: lto
             quickbuild: ""
     steps:
       - name: Free Disk-Space
@@ -169,7 +171,7 @@ jobs:
       - name: Image Name
         id: imagename
         run: |
-          IMG="${GITHUB_REPOSITORY,,}/${{ matrix.target }}-${{ matrix.variant }}"
+          IMG="${GITHUB_REPOSITORY,,}/${{ matrix.target }}-${{ matrix.variant }}-${{ matrix.addin }}"
           echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
           echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
       - name: Get download cache key
@@ -179,7 +181,7 @@ jobs:
       - name: Stop Commands
         run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
       - name: Generate Dockerfile
-        run: ./generate.sh ${{ matrix.target }} ${{ matrix.variant }}
+        run: ./generate.sh ${{ matrix.target }} ${{ matrix.variant }} ${{ matrix.addin }}
       - name: Cache
         uses: actions/cache/restore@v4
         with:
@@ -217,9 +219,11 @@ jobs:
         include:
           - target: win64
             variant: nonfree 7.0
+            addin: ""
             quickbuild: 1
           - target: linux64
-            variant: nonfree 7.0 lto
+            variant: nonfree 7.0
+            addin: lto
             quickbuild: ""
     steps:
       - name: Free Disk-Space
@@ -235,11 +239,11 @@ jobs:
       - name: Build ffmpeg
         run: |
           T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
-          ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
+          ./build.sh ${{ matrix.target }} ${{ matrix.variant }} ${{ matrix.addin }}
       - name: Replace spaces in string
         id: strs
         run: |
-          SLUG="${{ matrix.target }}-${{ matrix.variant }}"
+          SLUG="${{ matrix.target }}-${{ matrix.variant }}-${{ matrix.addin }}"
           echo "artifact_slug=${SLUG// /-}" >> $GITHUB_OUTPUT
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
