@@ -109,8 +109,8 @@ jobs:
         id: imagename
         run: |
           IMG="${GITHUB_REPOSITORY,,}/base-${{ matrix.target }}"
-          echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
-          echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
+          echo "name=ghcr.io/${IMG// /-}" >> $GITHUB_OUTPUT
+          echo "rawname=${IMG// /-}" >> $GITHUB_OUTPUT
           echo "gh_repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
       - name: Stop Commands
         run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
@@ -147,12 +147,8 @@ jobs:
         include:
           - target: win64
             variant: nonfree 7.0
-            addin: ""
-            quickbuild: 1
           - target: linux64
-            variant: nonfree 7.0
-            addin: lto
-            quickbuild: ""
+            variant: nonfree 7.0 lto
     steps:
       - name: Free Disk-Space
         run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
@@ -171,9 +167,9 @@ jobs:
       - name: Image Name
         id: imagename
         run: |
-          IMG="${GITHUB_REPOSITORY,,}/${{ matrix.target }}-${{ matrix.variant }}-${{ matrix.addin }}"
-          echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
-          echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
+          IMG="${GITHUB_REPOSITORY,,}/${{ matrix.target }}-${{ matrix.variant }}"
+          echo "name=ghcr.io/${IMG// /-}" >> $GITHUB_OUTPUT
+          echo "rawname=${IMG// /-}" >> $GITHUB_OUTPUT
       - name: Get download cache key
         id: dl_cache
         run: |
@@ -181,7 +177,7 @@ jobs:
       - name: Stop Commands
         run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
       - name: Generate Dockerfile
-        run: ./generate.sh ${{ matrix.target }} ${{ matrix.variant }} ${{ matrix.addin }}
+        run: ./generate.sh ${{ matrix.target }} ${{ matrix.variant }}
       - name: Cache
         uses: actions/cache/restore@v4
         with:
@@ -219,12 +215,8 @@ jobs:
         include:
           - target: win64
             variant: nonfree 7.0
-            addin: ""
-            quickbuild: 1
           - target: linux64
-            variant: nonfree 7.0
-            addin: lto
-            quickbuild: ""
+            variant: nonfree 7.0 lto
     steps:
       - name: Free Disk-Space
         run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
@@ -239,11 +231,11 @@ jobs:
       - name: Build ffmpeg
         run: |
           T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
-          ./build.sh ${{ matrix.target }} ${{ matrix.variant }} ${{ matrix.addin }}
+          ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
       - name: Replace spaces in string
         id: strs
         run: |
-          SLUG="${{ matrix.target }}-${{ matrix.variant }}-${{ matrix.addin }}"
+          SLUG="${{ matrix.target }}-${{ matrix.variant }}"
           echo "artifact_slug=${SLUG// /-}" >> $GITHUB_OUTPUT
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
