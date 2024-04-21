@@ -41,6 +41,8 @@ on:
 
 env:
   DOCKER_BUILDKIT: 1
+  _FFMPEG_BUILD_TARGET: ${{ github.event.inputs.buildTarget }}
+  _FFMPEG_BUILD_VAR: ${{ github.event.inputs.buildVariant }} ${{ github.event.inputs.buildAddins }}
 
 jobs:
   build_base:
@@ -111,8 +113,6 @@ jobs:
     if: ${{ github.event.inputs.buildOnly != 'true' }}
     needs: build_base
     runs-on: ubuntu-latest
-    env:
-      BUILD_TARGET: ${{ github.event.inputs.buildTarget }}
     steps:
       - name: Free Disk-Space
         run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
@@ -131,7 +131,8 @@ jobs:
       - name: Image Name
         id: imagename
         run: |
-          IMG="${GITHUB_REPOSITORY,,}/base-${BUILD_TARGET}"
+          IMG="${GITHUB_REPOSITORY,,}/base-${_FFMPEG_BUILD_TARGET}"
+          echo "targetname=images/base-${_FFMPEG_BUILD_TARGET}" >> $GITHUB_OUTPUT
           echo "name=ghcr.io/${IMG// /-}" >> $GITHUB_OUTPUT
           echo "rawname=${IMG// /-}" >> $GITHUB_OUTPUT
           echo "gh_repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
@@ -140,7 +141,7 @@ jobs:
       - name: Build target base image
         uses: docker/build-push-action@v5
         with:
-          context: images/base-${BUILD_TARGET}
+          context: ${{ steps.imagename.outputs.targetname }}
           pull: true
           push: true
           provenance: false
@@ -164,9 +165,6 @@ jobs:
     if: ${{ github.event.inputs.buildOnly != 'true' }}
     needs: build_target_bases
     runs-on: ubuntu-latest
-    env:
-      BUILD_TARGET: ${{ github.event.inputs.buildTarget }}
-      BUILD_VAR: ${{ github.event.inputs.buildVariant }} ${{ github.event.inputs.buildAddins }}
     steps:
       - name: Free Disk-Space
         run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
@@ -185,7 +183,7 @@ jobs:
       - name: Image Name
         id: imagename
         run: |
-          IMG="${GITHUB_REPOSITORY,,}/${BUILD_TARGET}-${BUILD_VAR%% *}"
+          IMG="${GITHUB_REPOSITORY,,}/${_FFMPEG_BUILD_TARGET}-${_FFMPEG_BUILD_VAR%% *}"
           echo "name=ghcr.io/${IMG// /-}" >> $GITHUB_OUTPUT
           echo "rawname=${IMG// /-}" >> $GITHUB_OUTPUT
       - name: Get download cache key
@@ -195,7 +193,7 @@ jobs:
       - name: Stop Commands
         run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
       - name: Generate Dockerfile
-        run: ./generate.sh ${BUILD_TARGET} ${BUILD_VAR}
+        run: ./generate.sh ${_FFMPEG_BUILD_TARGET} ${_FFMPEG_BUILD_VAR}
       - name: Cache
         uses: actions/cache/restore@v4
         with:
@@ -227,9 +225,6 @@ jobs:
     if: ${{ ( github.event.inputs.buildOnly == 'true' && !cancelled() ) || success() }}
     needs: build_targets
     runs-on: ubuntu-latest
-    env:
-      BUILD_TARGET: ${{ github.event.inputs.buildTarget }}
-      BUILD_VAR: ${{ github.event.inputs.buildVariant }} ${{ github.event.inputs.buildAddins }}
     steps:
       - name: Free Disk-Space
         run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
@@ -244,11 +239,11 @@ jobs:
       - name: Build ffmpeg
         run: |
           T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
-          ./build.sh ${BUILD_TARGET} ${BUILD_VAR}
+          ./build.sh ${_FFMPEG_BUILD_TARGET} ${_FFMPEG_BUILD_VAR}
       - name: Replace spaces in string
         id: strs
         run: |
-          SLUG="${BUILD_TARGET}-${BUILD_VAR%% *}"
+          SLUG="${_FFMPEG_BUILD_TARGET}-${_FFMPEG_BUILD_VAR%% *}"
           echo "artifact_slug=${SLUG// /-}" >> $GITHUB_OUTPUT
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
