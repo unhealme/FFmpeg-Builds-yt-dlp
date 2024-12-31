@@ -36,18 +36,18 @@ while [[ $# -gt 0 ]]; do
         cd "$REPACK_DIR"
 
         INAME="$(echo ffmpeg-*)"
-        TAGNAME="$(cut -d- -f2 <<<"$INAME")"
+        TAGNAME="$(cut -d- -f2 <<< "$INAME")"
 
         if [[ $TAGNAME == N ]]; then
             TAGNAME="master"
         elif [[ $TAGNAME == n* ]]; then
-            TAGNAME="$(sed -re 's/([0-9]+\.[0-9]+).*/\1/' <<<"$TAGNAME")"
+            TAGNAME="$(sed -re 's/([0-9]+\.[0-9]+).*/\1/' <<< "$TAGNAME")"
         fi
 
         if [[ "$INAME" =~ -[0-9]+-g ]]; then
-            ONAME="ffmpeg-$TAGNAME-latest-$(cut -d- -f5- <<<"$INAME")"
+            ONAME="ffmpeg-$TAGNAME-latest-$(cut -d- -f5- <<< "$INAME")"
         else
-            ONAME="ffmpeg-$TAGNAME-latest-$(cut -d- -f3- <<<"$INAME")"
+            ONAME="ffmpeg-$TAGNAME-latest-$(cut -d- -f3- <<< "$INAME")"
         fi
 
         mv "$INAME" "$ONAME"
