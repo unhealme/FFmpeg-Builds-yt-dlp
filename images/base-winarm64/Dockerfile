@@ -1,4 +1,4 @@
-ARG GH_REPO=ghcr.io/btbn/ffmpeg-builds
+ARG GH_REPO=ghcr.io/yt-dlp/ffmpeg-builds
 FROM $GH_REPO/base:latest
 
 RUN \
@@ -23,9 +23,7 @@ ENV FFBUILD_TOOLCHAIN=aarch64-w64-mingw32 \
     FFBUILD_RUST_TARGET=aarch64-pc-windows-gnullvm
 
 RUN \
-    rustup default nightly && \
-    rustup +nightly component add rust-src && \
-    echo "[unstable]\nbuild-std = [\"core\", \"alloc\", \"std\", \"proc_macro\"]\n" > "$CARGO_HOME"/config.toml && \
+    rustup target add "$FFBUILD_RUST_TARGET" && \
     echo "[target.$FFBUILD_RUST_TARGET]\nlinker = \"${FFBUILD_TOOLCHAIN}-clang\"\nar = \"${FFBUILD_TOOLCHAIN}-llvm-ar\"\n" >> "$CARGO_HOME"/config.toml
 
 ADD toolchain.cmake /toolchain.cmake
