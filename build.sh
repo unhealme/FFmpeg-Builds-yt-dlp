@@ -10,10 +10,10 @@ for addin in ${ADDINS[*]}; do
     source "addins/${addin}.sh"
 done
 
-if docker info -f "{{println .SecurityOptions}}" | grep rootless >/dev/null 2>&1; then
+if docker info -f "{{println .SecurityOptions}}" | grep rootless > /dev/null 2>&1; then
     UIDARGS=()
 else
-    UIDARGS=( -u "$(id -u):$(id -g)" )
+    UIDARGS=(-u "$(id -u):$(id -g)")
 fi
 
 rm -rf ffbuild
@@ -27,7 +27,7 @@ GIT_BRANCH="${GIT_BRANCH_OVERRIDE:-$GIT_BRANCH}"
 BUILD_SCRIPT="$(mktemp)"
 trap "rm -f -- '$BUILD_SCRIPT'" EXIT
 
-cat <<EOF >"$BUILD_SCRIPT"
+cat << EOF > "$BUILD_SCRIPT"
     set -xe
     shopt -s nullglob
     cd /ffbuild
@@ -52,7 +52,7 @@ cat <<EOF >"$BUILD_SCRIPT"
         --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
         --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS" \
         --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
-        --extra-version="\$(date +%Y%m%d)"
+        --extra-version="\$(date +%Y%m%d)_yt-dlp"
     make -j\$(nproc) V=1
     make install install-doc
 EOF
