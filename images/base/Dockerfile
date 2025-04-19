@@ -1,4 +1,4 @@
-FROM ubuntu:rolling
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN \
@@ -15,8 +15,8 @@ RUN \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get -y install nodejs && \
     apt-get -y clean && \
-    git config --global user.email "builder@localhost" && \
-    git config --global user.name "Builder" && \
+    git config --global user.email "praxe@main-pc.lan" && \
+    git config --global user.name "Praxe" && \
     git config --global advice.detachedHead false
 
 ENV CARGO_HOME="/opt/cargo" RUSTUP_HOME="/opt/rustup" PATH="/opt/cargo/bin:${PATH}"
